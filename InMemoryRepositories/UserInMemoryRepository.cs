@@ -1,59 +1,46 @@
 using Entities;
 using RepositoryContracts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace InMemoryRepositories;
 
-public class UserInMemoryRepository : IUserRepository
-{
-    
-    private List <User>  users;
-    
-    public Task<User> AddAsync(User user)
-    {
-        user.id = users.Any() ? users.Max(x => x.id) + 1 : 1;
-        users.Add(user);
-        return Task.FromResult(user);
+public class UserInMemoryRepository : BaseInMemoryRepository<User>,
+    IUserRepository {
+    public UserInMemoryRepository() {
+        items = new List<User> {
+            new User(1, "User 1", "11111111"),
+            new User(2, "User 2", "22222222"),
+            new User(3, "User 3", "33333333"),
+            new User(4, "User 4", "44444444"),
+            new User(5, "User 5", "55555555")
+        };
     }
-    
-    public Task UpdateAsync(User user)
-    {
-        User ? existingUser = users.FirstOrDefault(u => u.id == user.id);
-        if (existingUser == null)
-        {
-            throw new InvalidOperationException($"User with id {user.id} not found");
+
+    public override async Task<User> AddAsync(User user) {
+        ValidateUser(user);
+        return await base.AddAsync(user);
+    }
+
+    public override async Task UpdateAsync(User user) {
+        ValidateUser(user);
+        await base.UpdateAsync(user);
+    }
+
+    private void ValidateUser(User user) {
+        if (string.IsNullOrWhiteSpace(user.Username)) {
+            throw new InvalidOperationException("Username is required");
         }
 
-        users.Remove(existingUser);
-        users.Add(user);
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteAsync(int id)
-    {
-        User ? userToRemove = users.FirstOrDefault(u => u.id == id);
-        if (userToRemove is null)
-        {
-            throw new InvalidOperationException($"User with id {id} not found");
-        }
-        users.Remove(userToRemove);
-        return Task.CompletedTask;
-        
-    }
-
-    public Task<User> GetByIdAsync(int id)
-    {
-        User ? userToGet = users.FirstOrDefault(u => u.id == id);
-        if (userToGet is null)
-        {
-            throw new InvalidOperationException($"User with id {id} not found");
+        if (string.IsNullOrWhiteSpace(user.Password)) {
+            throw new InvalidOperationException("Password is required");
         }
 
-        userToGet.id = id;
-        return Task.FromResult(userToGet);
-    }
-
-    public IQueryable<User> GetAll()
-    {
-        return users.AsQueryable();
+        if (items.Any(u => u.Id == user.Id)) {
+            throw new InvalidOperationException(
+                "User with the same id already exists");
+        }
     }
 }

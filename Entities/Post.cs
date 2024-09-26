@@ -1,9 +1,12 @@
 namespace Entities;
 
-public class Post
-{
-    public int id { get; set; }
-    public string title { get; set; }
-    public string body { get; set; }
-    public int userId { get; set; }
+public class Post(int id, string title, string body, int userId) : IEntity {
+    public int Id { get; set; } = id;
+    public string Title { get; set; } = title;
+    public string Body { get; set; } = body;
+    public int UserId { get; set; } = userId;
+
+    public override string ToString() {
+        return $"Post {Id}: {Title}, {Body}, UserId: {UserId}";
+    }
 }

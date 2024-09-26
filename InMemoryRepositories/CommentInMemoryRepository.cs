@@ -1,57 +1,50 @@
 using Entities;
 using RepositoryContracts;
+using System.Collections.Generic;
 
 namespace InMemoryRepositories;
 
-public class CommentInMemoryRepository : ICommentRepository
-{
-    private List<Comment> comments;
-    
-    public Task<Comment> AddComment(Comment comment)
-    {
-        comment.id = comments.Any() ? comments.Last().id : 1;
-        comments.Add(comment);
-        return Task.FromResult(comment);
-    }
+public class CommentInMemoryRepository : BaseInMemoryRepository<Comment>,
+    ICommentRepository {
+    private readonly IUserRepository userRepository;
+    private readonly IPostRepository postRepository;
 
-    public Task UpdateComment(Comment comment)
-    {
-        Comment ? existingComment = comments.FirstOrDefault(c => c.id == comment.id);
-        if (existingComment != null)
-        {
-            throw new InvalidOperationException($"The comment with id {comment.id} does not exists.");
-        }
-
-        comments.Remove(comment);
-        comments.Add(comment);
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteComment(Comment comment)
-    {
-        Comment ? commentToRemove = comments.FirstOrDefault(c => c.id == comment.id);
-        if (commentToRemove != null)
-        {
-            throw new InvalidOperationException($"The comment with id {comment.id} does not exists.");
-        }
+    public CommentInMemoryRepository(IUserRepository userRepository, IPostRepository postRepository) {
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
         
-        comments.Remove(comment);
-        return Task.CompletedTask;
+        items = new List<Comment> {
+            new Comment (  1, "Comment 1" ,  1, 1),
+            new Comment ( 2,  "Comment 2", 1, 1 ),
+            new Comment (3, "Comment 3" , 1, 1),
+            new Comment ( 4,  "Comment 4" ,  1,  1),
+            new Comment ( 5, "Comment 5" , 1, 1)
+        };
+    }
+    
+    public override async Task<Comment> AddAsync(Comment comment) {
+        ValidateComment(comment);
+        return await base.AddAsync(comment);
+    }
+    
+    public override async Task UpdateAsync(Comment comment) {
+        ValidateComment(comment);
+        await base.UpdateAsync(comment);
     }
 
-    public Task<Comment> GetCommentById(int id)
-    {
-        Comment ? commentToGet = comments.FirstOrDefault(c => c.id == id);
-        if (commentToGet != null)
-        {
-            throw new InvalidOperationException($"The comment with id {commentToGet.id} does not exists.");
+    private void ValidateComment(Comment comment) {
+        if (string.IsNullOrWhiteSpace(comment.Body)) {
+            throw new InvalidOperationException("Comment body is required");
         }
-        commentToGet.id = id;
-        return Task.FromResult(commentToGet);
-    }
-
-    public IQueryable<Comment> GetComments()
-    {
-        return comments.AsQueryable();
+        if (items.Any(c  => c.Id == comment.Id)) {
+            throw new InvalidOperationException("Comment with the same id already exists");
+        }
+        if (!userRepository.GetMany().Any(u => u.Id == comment.UserId)) {
+            throw new InvalidOperationException(
+                "Post must be made by an existing user");
+        }
+        if (!postRepository.GetMany().Any(p => p.Id == comment.PostId)) {
+            throw new InvalidOperationException("Post does not exist");
+        }
     }
 }

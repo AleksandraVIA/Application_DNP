@@ -1,60 +1,55 @@
-using System.Formats.Tar;
-using System.Globalization;
 using Entities;
 using RepositoryContracts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace InMemoryRepositories;
 
-public class PostInMemoryRepository : IPostRepository
-{
-    private List<Post> posts;
-    public Task<Post> AddAsync(Post post)
-    {
-        post.id = posts.Any()
-            ? posts.Max(p => p.id) + 1
-            : 1;
-        posts.Add(post);
-        return Task.FromResult(post);
+public class PostInMemoryRepository : BaseInMemoryRepository<Post>,
+    IPostRepository {
+    private readonly IUserRepository userRepository;
+
+    public PostInMemoryRepository(IUserRepository userRepository) {
+        this.userRepository = userRepository;
+
+        items = new List<Post> {
+            new Post(1, "Post 1", "Body 1", 1),
+            new Post(2, "Post 2", "Body 2", 1),
+            new Post(3, "Post 3", "Body 3", 1),
+            new Post(4, "Post 4", "Body 4", 1),
+            new Post(5, "Post 5", "Body 5", 1)
+        };
     }
 
-    public Task UpdateAsync(Post post)
-    {
-        Post ? existingPost = posts.SingleOrDefault(p => p.id == post.id);
-        if (existingPost is null)
-        {
-            throw new InvalidOperationException( $"Post with ID {post.id} not found");
+    public override async Task<Post> AddAsync(Post post) {
+        ValidatePost(post);
+        return await base.AddAsync(post);
+    }
+
+    public override async Task UpdateAsync(Post post) {
+        ValidatePost(post);
+        await base.UpdateAsync(post);
+    }
+
+    private void ValidatePost(Post post) {
+        if (string.IsNullOrWhiteSpace(post.Title)) {
+            throw new InvalidOperationException("Post title is required");
         }
 
-        posts.Remove(existingPost);
-        posts.Add(post);
-
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteAsync(int id)
-    {
-        Post ? postToRemove = posts.SingleOrDefault(p => p.id == id);
-        if (postToRemove is null)
-        {
-            throw new InvalidOperationException($"Post with ID {id} not found");
+        if (string.IsNullOrWhiteSpace(post.Body)) {
+            throw new InvalidOperationException("Post body is required");
         }
-            posts.Remove(postToRemove);
-            return Task.CompletedTask;
-    }
 
-    public Task<Post> GetSingleAsync(int id)
-    {
-        Post ? postToGet = posts.SingleOrDefault(p => p.id == id);
-        if (postToGet is null)
-        {
-            throw new InvalidOperationException($"Post with ID {id} not found");
+        if (items.Any(p => p.Id == post.Id)) {
+            throw new InvalidOperationException(
+                "Post with the same id already exists");
         }
-        postToGet.id = id;
-        return Task.FromResult(postToGet);
-    }
 
-    public IQueryable<Post> GetMany()
-    {
-        return posts.AsQueryable();
+        if (!userRepository.GetMany().Any(u => u.Id == post.UserId)) {
+            throw new InvalidOperationException(
+                "Post must be made by an existing user");
+        }
     }
 }
