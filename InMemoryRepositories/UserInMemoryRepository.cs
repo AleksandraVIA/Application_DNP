@@ -9,16 +9,7 @@ namespace InMemoryRepositories;
 
 public class UserInMemoryRepository : BaseInMemoryRepository<User>,
     IUserRepository {
-    public UserInMemoryRepository() {
-        items = new List<User> {
-            new User(1, "User 1", "11111111"),
-            new User(2, "User 2", "22222222"),
-            new User(3, "User 3", "33333333"),
-            new User(4, "User 4", "44444444"),
-            new User(5, "User 5", "55555555")
-        };
-    }
-
+    
     public override async Task<User> AddAsync(User user) {
         ValidateUser(user);
         return await base.AddAsync(user);
@@ -43,4 +34,5 @@ public class UserInMemoryRepository : BaseInMemoryRepository<User>,
                 "User with the same id already exists");
         }
     }
+    
 }

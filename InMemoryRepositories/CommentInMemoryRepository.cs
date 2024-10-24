@@ -13,13 +13,6 @@ public class CommentInMemoryRepository : BaseInMemoryRepository<Comment>,
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         
-        items = new List<Comment> {
-            new Comment (  1, "Comment 1" ,  1, 1),
-            new Comment ( 2,  "Comment 2", 1, 1 ),
-            new Comment (3, "Comment 3" , 1, 1),
-            new Comment ( 4,  "Comment 4" ,  1,  1),
-            new Comment ( 5, "Comment 5" , 1, 1)
-        };
     }
     
     public override async Task<Comment> AddAsync(Comment comment) {

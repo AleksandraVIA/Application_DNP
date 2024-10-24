@@ -1,11 +1,27 @@
 namespace Entities;
 
-public class User (int id, string username, string password) : IEntity {
-    public int Id { get; set; } = id;
-    public string Username { get; set; } = username;
-    public string Password { get; set; } = password;
+public class User : IEntity 
+{
+   
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Password { get; set; }
     
-    public override string ToString() {
+    public User(int id, string username, string password) 
+    {
+        Id = id;
+        Username = username;
+        Password = password;
+    }
+    
+    public User(string username, string password) 
+    {
+        Username = username;
+        Password = password;
+    } 
+    
+    public override string ToString() 
+    {
         return $"User {Id}: {Username}, {Password}";
     }
 }

@@ -13,14 +13,8 @@ public class PostInMemoryRepository : BaseInMemoryRepository<Post>,
 
     public PostInMemoryRepository(IUserRepository userRepository) {
         this.userRepository = userRepository;
-
-        items = new List<Post> {
-            new Post(1, "Post 1", "Body 1", 1),
-            new Post(2, "Post 2", "Body 2", 1),
-            new Post(3, "Post 3", "Body 3", 1),
-            new Post(4, "Post 4", "Body 4", 1),
-            new Post(5, "Post 5", "Body 5", 1)
-        };
+        
+        
     }
 
     public override async Task<Post> AddAsync(Post post) {
