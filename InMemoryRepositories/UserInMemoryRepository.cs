@@ -10,17 +10,17 @@ namespace InMemoryRepositories;
 public class UserInMemoryRepository : BaseInMemoryRepository<User>,
     IUserRepository {
     
-    public override async Task<User> AddAsync(User user) {
+    public override async Task<User?> AddAsync(User? user) {
         ValidateUser(user);
         return await base.AddAsync(user);
     }
 
-    public override async Task UpdateAsync(User user) {
+    public override async Task UpdateAsync(User? user) {
         ValidateUser(user);
         await base.UpdateAsync(user);
     }
 
-    private void ValidateUser(User user) {
+    private void ValidateUser(User? user) {
         if (string.IsNullOrWhiteSpace(user.Username)) {
             throw new InvalidOperationException("Username is required");
         }

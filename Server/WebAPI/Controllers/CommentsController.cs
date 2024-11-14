@@ -61,63 +61,41 @@ public class CommentsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CommentDto>> GetComments(
-        [FromQuery] int? postId) {
+    public ActionResult<IEnumerable<CommentDto>> GetComments([FromQuery] int? postId)
+    {
         IEnumerable<Comment> comments = commentRepo.GetMany();
 
-        if (postId.HasValue) {
-            comments =
-                comments.Where(comment => comment.PostId == postId.Value);
+        if (postId.HasValue)
+        {
+            comments = comments.Where(comment => comment.PostId == postId.Value);
         }
 
         IEnumerable<CommentDto> commentDtos = comments.Select(comment =>
-            new CommentDto {
+            new CommentDto
+            {
                 Id = comment.Id,
                 Body = comment.Body,
                 PostId = comment.PostId,
-                AuthorsName = userRepo.GetSingleAsync(comment.UserId)
-                    .Result.Username
+                AuthorsName = userRepo.GetSingleAsync(comment.UserId).Result.Username
             });
         return Ok(commentDtos);
     }
-    
-    [HttpGet("{id}")]
-    public async Task<ActionResult<CommentDto>> GetComment(int id) {
-        Comment comment = await commentRepo.GetSingleAsync(id);
-        CommentDto commentDto = new() {
-            Id = comment.Id,
-            Body = comment.Body,
-            PostId = comment.PostId,
-            AuthorsName = userRepo.GetSingleAsync(comment.UserId)
-                .Result.Username
-        };
-        return Ok(commentDto);
-    }
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments([FromQuery] string search = "")
-    {
-        IEnumerable<Comment> comments = commentRepo.GetMany().ToList();
 
-        List<CommentDto> commentDtos = new List<CommentDto>();
-        foreach (var comment in comments)
-        {
-            commentDtos.Add(new CommentDto
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<CommentDto>>> SearchComments([FromQuery] string search = "")
+    {
+        IEnumerable<Comment> comments = commentRepo.GetMany();
+
+        List<CommentDto> commentDtos = comments
+            .Where(c => c.Body.Contains(search)) // Add search criteria
+            .Select(comment => new CommentDto
             {
                 Id = comment.Id,
                 Body = comment.Body,
                 PostId = comment.PostId,
                 UserId = comment.UserId
-            });
-        }
+            }).ToList();
 
         return Ok(commentDtos);
-    }
-    
-    
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteComment(int id) {
-        await commentRepo.DeleteAsync(id);
-        return NoContent();
     }
 }

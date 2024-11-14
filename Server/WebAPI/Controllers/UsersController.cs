@@ -19,8 +19,8 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserDto>> AddUser([FromBody] CreateUserDto request)
     { 
-        User user = new User(request.UserName, request.Password);
-        User created = await userRepo.AddAsync(user);
+        User? user = new User();
+        User? created = await userRepo.AddAsync(user);
         UserDto dto = new UserDto
         {
             Id = created.Id,
@@ -33,7 +33,7 @@ public class UsersController : ControllerBase
     
     [HttpGet]
     public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? username) {
-        IEnumerable<User> users = userRepo.GetMany();
+        IEnumerable<User?> users = userRepo.GetMany();
         
         if (username != null) {
             users = users.Where(user => user.Username.Contains(username));
@@ -47,7 +47,7 @@ public class UsersController : ControllerBase
     
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUser(int id) {
-        User user = await userRepo.GetSingleAsync(id);
+        User? user = await userRepo.GetSingleAsync(id);
         UserDto userDto = new() {
             Id = user.Id,
             Username = user.Username

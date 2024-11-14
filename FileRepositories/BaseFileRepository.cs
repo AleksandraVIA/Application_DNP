@@ -5,14 +5,14 @@ using RepositoryContracts;
 namespace FileRepositories;
 
 public abstract class BaseFileRepository<T> where T : class, IEntity {
-    private readonly string filePath;
+    private readonly string _filePath;
 
     protected BaseFileRepository(string filePath) {
-        this.filePath = filePath;
+        this._filePath = filePath;
     }
 
     public async Task<T> AddAsync(T item) {
-        string itemsJson = await File.ReadAllTextAsync(filePath);
+        string itemsJson = await File.ReadAllTextAsync(_filePath);
         List<T> items = JsonSerializer.Deserialize<List<T>>(itemsJson) ?? new List<T>();
 
         int maxId = items.Count > 0 ? items.Max(i => i.Id) : 0;
@@ -20,12 +20,12 @@ public abstract class BaseFileRepository<T> where T : class, IEntity {
 
         items.Add(item);
         itemsJson = JsonSerializer.Serialize(items);
-        await File.WriteAllTextAsync(filePath, itemsJson);
+        await File.WriteAllTextAsync(_filePath, itemsJson);
         return item;
     }
 
     public async Task UpdateAsync(T item) {
-        string itemsJson = await File.ReadAllTextAsync(filePath);
+        string itemsJson = await File.ReadAllTextAsync(_filePath);
         List<T> items = JsonSerializer.Deserialize<List<T>>(itemsJson) ?? new List<T>();
 
         int index = items.FindIndex(i => i.Id == item.Id);
@@ -35,11 +35,11 @@ public abstract class BaseFileRepository<T> where T : class, IEntity {
 
         items[index] = item;
         itemsJson = JsonSerializer.Serialize(items);
-        await File.WriteAllTextAsync(filePath, itemsJson);
+        await File.WriteAllTextAsync(_filePath, itemsJson);
     }
 
     public async Task DeleteAsync(int id) {
-        string itemsJson = await File.ReadAllTextAsync(filePath);
+        string itemsJson = await File.ReadAllTextAsync(_filePath);
         List<T> items = JsonSerializer.Deserialize<List<T>>(itemsJson) ?? new List<T>();
 
         int index = items.FindIndex(i => i.Id == id);
@@ -49,11 +49,11 @@ public abstract class BaseFileRepository<T> where T : class, IEntity {
 
         items.RemoveAt(index);
         itemsJson = JsonSerializer.Serialize(items);
-        await File.WriteAllTextAsync(filePath, itemsJson);
+        await File.WriteAllTextAsync(_filePath, itemsJson);
     }
 
     public async Task<T> GetSingleAsync(int id) {
-        string itemsJson = await File.ReadAllTextAsync(filePath);
+        string itemsJson = await File.ReadAllTextAsync(_filePath);
         List<T> items = JsonSerializer.Deserialize<List<T>>(itemsJson) ?? new List<T>();
 
         T item = items.FirstOrDefault(i => i.Id == id);
@@ -65,7 +65,7 @@ public abstract class BaseFileRepository<T> where T : class, IEntity {
     }
 
     public IQueryable<T> GetMany() {
-        string itemsJson = File.ReadAllTextAsync(filePath).Result;
+        string itemsJson = File.ReadAllTextAsync(_filePath).Result;
         List<T> items = JsonSerializer.Deserialize<List<T>>(itemsJson) ?? new List<T>();
         return items.AsQueryable();
     }

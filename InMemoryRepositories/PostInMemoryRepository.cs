@@ -7,16 +7,9 @@ using System.Threading.Tasks;
 
 namespace InMemoryRepositories;
 
-public class PostInMemoryRepository : BaseInMemoryRepository<Post>,
-    IPostRepository {
-    private readonly IUserRepository userRepository;
-
-    public PostInMemoryRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
-        
-        
-    }
-
+public class PostInMemoryRepository(IUserRepository userRepository) : BaseInMemoryRepository<Post>,
+    IPostRepository
+{
     public override async Task<Post> AddAsync(Post post) {
         ValidatePost(post);
         return await base.AddAsync(post);

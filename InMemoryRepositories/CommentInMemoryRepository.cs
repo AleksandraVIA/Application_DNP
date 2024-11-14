@@ -6,12 +6,12 @@ namespace InMemoryRepositories;
 
 public class CommentInMemoryRepository : BaseInMemoryRepository<Comment>,
     ICommentRepository {
-    private readonly IUserRepository userRepository;
-    private readonly IPostRepository postRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IPostRepository _postRepository;
 
     public CommentInMemoryRepository(IUserRepository userRepository, IPostRepository postRepository) {
-        this.userRepository = userRepository;
-        this.postRepository = postRepository;
+        this._userRepository = userRepository;
+        this._postRepository = postRepository;
         
     }
     
@@ -32,11 +32,11 @@ public class CommentInMemoryRepository : BaseInMemoryRepository<Comment>,
         if (items.Any(c  => c.Id == comment.Id)) {
             throw new InvalidOperationException("Comment with the same id already exists");
         }
-        if (!userRepository.GetMany().Any(u => u.Id == comment.UserId)) {
+        if (!_userRepository.GetMany().Any(u => u.Id == comment.UserId)) {
             throw new InvalidOperationException(
                 "Post must be made by an existing user");
         }
-        if (!postRepository.GetMany().Any(p => p.PostId == comment.PostId)) {
+        if (!_postRepository.GetMany().Any(p => p.PostId == comment.PostId)) {
             throw new InvalidOperationException("Post does not exist");
         }
     }

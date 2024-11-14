@@ -9,7 +9,7 @@ public class CreateUserView(IUserRepository userRepository) {
         var name = Console.ReadLine();
         Console.WriteLine("Enter user password:");
         var password = Console.ReadLine();
-        var user = new User(userRepository.GetMany().Count() + 1, name, password);
+        var user = new User();
         await userRepository.AddAsync(user);
         Console.WriteLine("User created successfully");
     }
