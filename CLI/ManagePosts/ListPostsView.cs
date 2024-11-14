@@ -8,7 +8,7 @@ public class ListPostsView (IPostRepository postRepository) {
 
 
         foreach (var post in posts) {
-            Console.WriteLine($"ID: {post.Id}");
+            Console.WriteLine($"ID: {post.PostId}");
             Console.WriteLine($"Title: {post.Title}");
             Console.WriteLine($"Content: {post.Body}");
             Console.WriteLine($"Author ID: {post.UserId}");

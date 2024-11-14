@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 public class PostsController : ControllerBase
 {
     private readonly IPostRepository postRepo;
+    private readonly IUserRepository userRepo;
 
     public PostsController(IPostRepository postRepo)
     {
@@ -20,7 +21,7 @@ public class PostsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<PostDto>> AddPost([FromBody] CreatePostDto request)
     {
-        Post post = new Post(request.Title, request.Body, request.UserId);
+        Post post = new Post();
         Post created = await postRepo.AddAsync(post);
         
         PostDto dto = new PostDto
@@ -59,53 +60,38 @@ public class PostsController : ControllerBase
         return Ok(dto);
     }
 
-    // Get Single Post (GET by ID)
     [HttpGet("{id}")]
-    public async Task<ActionResult<PostDto>> GetPost(int id)
-    {
+    public async Task<ActionResult<PostDto>> GetPost(int id) {
         Post post = await postRepo.GetSingleAsync(id);
-        if (post == null) return NotFound();
-
-        PostDto dto = new PostDto
-        {
+        PostDto postDto = new() {
             Id = post.Id,
             Title = post.Title,
             Body = post.Body,
-            UserId = post.UserId,
-            Comments = new List<CommentDto>() 
+            Author = userRepo.GetSingleAsync(post.UserId).Result.Username
         };
-        return Ok(dto);
+        return Ok(postDto);
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PostDto>>> GetPosts([FromQuery] string search = "")
-    {
-        IEnumerable<Post> posts = postRepo.GetMany().ToList(); 
+    public ActionResult<IEnumerable<PostDto>> GetPosts([FromQuery] string? title) {
+        IEnumerable<Post> posts = postRepo.GetMany();
 
-        List<PostDto> postDtos = new List<PostDto>();
-        foreach (var post in posts)
-        {
-            postDtos.Add(new PostDto
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Body = post.Body,
-                UserId = post.UserId,
-                Comments = new List<CommentDto>() 
-            });
+        if (title != null) {
+            posts = posts.Where(post => post.Title.Contains(title));
         }
-
+        IEnumerable<PostDto> postDtos = posts.Select(post => new PostDto {
+            Id = post.Id,
+            Title = post.Title,
+            Body = post.Body,
+            Author = userRepo.GetSingleAsync(post.UserId).Result.Username
+        });
         return Ok(postDtos);
     }
 
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeletePost(int id)
-    {
-        Post post = await postRepo.GetSingleAsync(id);
-        if (post == null) return NotFound();
-
+    public async Task<ActionResult> DeletePost(int id) {
         await postRepo.DeleteAsync(id);
-        return NoContent(); 
+        return NoContent();
     }
 }

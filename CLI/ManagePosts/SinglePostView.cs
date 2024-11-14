@@ -13,7 +13,7 @@ public class SinglePostView (IPostRepository postRepository) {
             return;
         }
 
-        Console.WriteLine($"ID: {post.Id}");
+        Console.WriteLine($"ID: {post.PostId}");
         Console.WriteLine($"Title: {post.Title}");
         Console.WriteLine($"Content: {post.Body}");
         Console.WriteLine($"Author ID: {post.UserId}");

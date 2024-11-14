@@ -36,7 +36,7 @@ public class PostInMemoryRepository : BaseInMemoryRepository<Post>,
             throw new InvalidOperationException("Post body is required");
         }
 
-        if (items.Any(p => p.Id == post.Id)) {
+        if (items.Any(p => p.PostId == post.PostId)) {
             throw new InvalidOperationException(
                 "Post with the same id already exists");
         }

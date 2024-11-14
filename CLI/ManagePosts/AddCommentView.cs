@@ -25,7 +25,7 @@ public class AddCommentView(IUserRepository userRepository, IPostRepository post
             return;
         }
 
-        var comment = new Comment(commentRepository.GetMany().Count() + 1, content, userId, postId);
+        var comment = new Comment();
         await commentRepository.AddAsync(comment);
 
         Console.WriteLine("Comment created successfully");

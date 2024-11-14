@@ -9,31 +9,33 @@ using System.Threading.Tasks;
 public class CommentsController : ControllerBase
 {
     private readonly ICommentRepository commentRepo;
+    private readonly IUserRepository userRepo;
 
-    public CommentsController(ICommentRepository commentRepo)
+    public CommentsController(ICommentRepository commentRepo, IUserRepository userRepo)
     {
         this.commentRepo = commentRepo;
+        this.userRepo = userRepo;
     }
 
 
     [HttpPost]
-    public async Task<ActionResult<CommentDto>> AddComment([FromBody] CreateCommentDto request)
-    {
-        
-        Comment comment = new Comment(request.Body, request.PostId, request.UserId); 
-        Comment created = await commentRepo.AddAsync(comment);
-
-        CommentDto dto = new CommentDto
-        {
-            Id = created.Id, 
-            Body = created.Body,
-            PostId = created.PostId,
-            UserId = created.UserId
+    public async Task<ActionResult<CommentDto>> AddComment(
+        [FromBody] CreateCommentDto request) {
+        Comment comment = new Comment {
+            Body = request.Body,
+            PostId = request.PostId,
+            UserId = request.UserId
         };
-
-        return Created($"/Comments/{dto.Id}", dto);
+        Comment createdComment = await commentRepo.AddAsync(comment);
+        CommentDto commentDto = new() {
+            Id = createdComment.Id,
+            Body = createdComment.Body,
+            PostId = createdComment.PostId,
+            AuthorsName = userRepo
+                .GetSingleAsync(createdComment.UserId).Result.Username
+        };
+        return Created($"/Comments/{commentDto.Id}", commentDto);
     }
-
 
     
     [HttpPut("{id}")]
@@ -58,21 +60,38 @@ public class CommentsController : ControllerBase
         return Ok(dto);
     }
 
-    // Get Single Comment (GET by ID)
-    [HttpGet("{id}")]
-    public async Task<ActionResult<CommentDto>> GetComment(int id)
-    {
-        Comment comment = await commentRepo.GetSingleAsync(id);
-        if (comment == null) return NotFound();
+    [HttpGet]
+    public ActionResult<IEnumerable<CommentDto>> GetComments(
+        [FromQuery] int? postId) {
+        IEnumerable<Comment> comments = commentRepo.GetMany();
 
-        CommentDto dto = new CommentDto
-        {
+        if (postId.HasValue) {
+            comments =
+                comments.Where(comment => comment.PostId == postId.Value);
+        }
+
+        IEnumerable<CommentDto> commentDtos = comments.Select(comment =>
+            new CommentDto {
+                Id = comment.Id,
+                Body = comment.Body,
+                PostId = comment.PostId,
+                AuthorsName = userRepo.GetSingleAsync(comment.UserId)
+                    .Result.Username
+            });
+        return Ok(commentDtos);
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CommentDto>> GetComment(int id) {
+        Comment comment = await commentRepo.GetSingleAsync(id);
+        CommentDto commentDto = new() {
             Id = comment.Id,
             Body = comment.Body,
             PostId = comment.PostId,
-            UserId = comment.UserId
+            AuthorsName = userRepo.GetSingleAsync(comment.UserId)
+                .Result.Username
         };
-        return Ok(dto);
+        return Ok(commentDto);
     }
     
     [HttpGet]
@@ -95,15 +114,10 @@ public class CommentsController : ControllerBase
         return Ok(commentDtos);
     }
     
-
-
+    
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteComment(int id)
-    {
-        Comment comment = await commentRepo.GetSingleAsync(id);
-        if (comment == null) return NotFound();
-
+    public async Task<ActionResult> DeleteComment(int id) {
         await commentRepo.DeleteAsync(id);
-        return NoContent(); 
+        return NoContent();
     }
 }

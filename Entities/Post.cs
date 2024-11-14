@@ -1,27 +1,44 @@
 namespace Entities;
 
-public class Post : IEntity {
-    
-    public int Id { get; set; }
-    public string Title { get; set; } 
-    public string Body { get; set; } 
+public class Post : IEntity
+{
+    public int PostId { get; set; }
     public int UserId { get; set; }
+    private string? title, body;
 
-    public Post(int id, string title, string body, int userId)
+    public string Title
     {
-        this.Id = id;
-        this.Title = title;
-        this.Body = body;
-        this.UserId = userId;
+        get
+        {
+            return title;
+        }
+        set
+        {
+            if (value is null || value.Trim().Equals(""))
+                throw new ArgumentException("The title cannot be empty.");
+            title = value;
+        }
     }
-    public Post(string title, string body, int userId)
-    {
-        this.Title = title;
-        this.Body = body;
-        this.UserId = userId;
+
+    public string Body {
+        get => body;
+        set
+        {
+            if (value is null || value.Trim().Equals(""))
+                throw new ArgumentException("The body cannot be empty.");
+            body = value;
+        }
     }
     
-    public override string ToString() {
-        return $"Post {Id}: {Title}, {Body}, UserId: {UserId}";
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+            return false;
+        Post other=(Post)obj;
+        if (other.UserId==UserId && other.Title.Equals(Title) && other.Body.Equals(Body) && other.PostId==PostId)
+            return true;
+        return false;
     }
+
+    public int Id { get; set; }
 }

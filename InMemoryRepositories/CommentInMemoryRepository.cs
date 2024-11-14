@@ -36,7 +36,7 @@ public class CommentInMemoryRepository : BaseInMemoryRepository<Comment>,
             throw new InvalidOperationException(
                 "Post must be made by an existing user");
         }
-        if (!postRepository.GetMany().Any(p => p.Id == comment.PostId)) {
+        if (!postRepository.GetMany().Any(p => p.PostId == comment.PostId)) {
             throw new InvalidOperationException("Post does not exist");
         }
     }

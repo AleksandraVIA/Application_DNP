@@ -19,7 +19,7 @@ public class CreatePostView(IUserRepository userRepository, IPostRepository post
             return;
         }
 
-        var post = new Post(postRepository.GetMany().Count() + 1, title, body, userId);
+        var post = new Post();
         await postRepository.AddAsync(post);
 
         Console.WriteLine("Post created successfully");

@@ -31,54 +31,33 @@ public class UsersController : ControllerBase
         return Created($"/Users/{dto.Id}", dto);
     }
     
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UpdateUserDto request)
-    {
-        User existingUser = await userRepo.GetSingleAsync(id);
-        if (existingUser == null) return NotFound();
-
-        existingUser.Username = request.Username;
-        existingUser.Password = request.Password;
-        await userRepo.UpdateAsync(existingUser);
-
-        UserDto dto = new UserDto
-        {
-            Id = existingUser.Id,
-            Username = existingUser.Username
-        };
-        return Ok(dto);
+    [HttpGet]
+    public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? username) {
+        IEnumerable<User> users = userRepo.GetMany();
+        
+        if (username != null) {
+            users = users.Where(user => user.Username.Contains(username));
+        }
+        IEnumerable<UserDto> userDtos = users.Select(user => new UserDto {
+            Id = user.Id,
+            Username = user.Username
+        });
+        return Ok(userDtos);
     }
     
     [HttpGet("{id}")]
-    public async Task<ActionResult<UserDto>> GetUser(int id)
-    {
+    public async Task<ActionResult<UserDto>> GetUser(int id) {
         User user = await userRepo.GetSingleAsync(id);
-        if (user == null) return NotFound();
-
-        UserDto dto = new UserDto
-        {
+        UserDto userDto = new() {
             Id = user.Id,
             Username = user.Username
         };
-        return Ok(dto);
+        return Ok(userDto);
     }
     
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string search = "")
-    {
-        IEnumerable<User> users = userRepo.GetMany().ToList(); 
-
-        List<UserDto> userDtos = new List<UserDto>();
-        foreach (var user in users)
-        {
-            userDtos.Add(new UserDto
-            {
-                Id = user.Id,
-                Username = user.Username
-            });
-        }
-
-        return Ok(userDtos);
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteUser(int id) {
+        await userRepo.DeleteAsync(id);
+        return NoContent();
     }
-
 }
